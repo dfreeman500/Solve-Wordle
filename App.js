@@ -128,85 +128,105 @@ function findWordScore(currentWordList) {
 //         wordScore[currentWordList[i]]= letterSetFrequency[tempSet[j]]
 //     }
 // }
-newWordList = []
-function wrongLetterEliminate(currentWordList, lettersToEliminate) {
-    for (let i = 0; i < currentWordList.length; i++) {
-        let isWordAcceptable = true;
-        for (let j = 0; j < lettersToEliminate.length; j++) {
-            if (currentWordList[i].includes(lettersToEliminate[j])) {
-                isWordAcceptable = false;
-
-            }
-
-        }
-        if (isWordAcceptable) {
-            newWordList.push(currentWordList[i])
+function eliminateWrongLetters(currentWord, eliminatedLetters) {
+    for (let i = 0; i < eliminatedLetters.length; i++) {
+        if (currentWord.includes(eliminatedLetters[i])) {
+            return "exclude";
         }
     }
 }
 
+eliminatedLetters = ['a','l','e','t','h','n','y','c','p','f']
 
-positionMap = [
-    ['e', 2],
-    ['r', 3],
-    ['r', 1],
-    ['o', 2],
-    ['e', 4],
-    ['o', 0],
-    ['e', 2],
+//Letters in the word and in the correct position
+correctLetterCorrectPositionMap = [
+    ['r',1],
+    ['i',2],
+    ['s',3],
+    ['k',4]
+
 
 ]
 
+//These are letters that must be in the word but are in the incorrect position
+let correctLetterWrongPositionMap = [
+    ['r',3],
+    ['s',0]
+]
 
-function buildRegexPattern(letter, position) {
+
+function buildRegexPattern(letter, position, requirement) {
     output = ''
     for (let i = 0; i < 5; i++) {
         //console.log(i, letter, position)
         if (position == i) {
-            output += "[^" + letter + "]"
+            if (requirement == "cantHave") {
+                output += "[^" + letter + "]"
+            }
+            if (requirement == "mustHave") {
+                output += "[" + letter + "]"
+            }
         } else {
             output += "[a-z]"
         }
     }
-    // a = new RegExp(output,'g')
-
     return output;
 }
 
 secondNewWordList = []
-function rightLetterWrongPosition(newWordList, positionMap) {
-    for (let i = 0; i < newWordList.length; i++) {
-        let isWordAcceptable = true;
-        for (let k = 0; k < positionMap.length; k++) {
-            pattern = buildRegexPattern(positionMap[k][0], positionMap[k][1])
-            console.log(new RegExp(pattern), newWordList[i])
-            console.log(newWordList[i].match(new RegExp(pattern)))
-            if (newWordList[i].match(new RegExp(pattern)) == null) {
-                isWordAcceptable = false;
-            }
-
-            //if letter in the wrong place isn't in the word - don't add
-            if(!newWordList[i].includes(positionMap[k][0])){ 
-                isWordAcceptable = false;
-            }
+function rightLetterWrongPosition(currentWord, correctLetterWrongPositionMap) {
+    for (let i = 0; i < correctLetterWrongPositionMap.length; i++) {
+        //if letter in the wrong place isn't in the word - then exclude - 
+        //ex: t,0 will eliminate 'shore' because 't' isn't the candidate word
+        // MUST HAVE 't' somewhere
+        if (!currentWord.includes(correctLetterWrongPositionMap[i][0])) {
+            return "exclude";
         }
-        if (isWordAcceptable) {
-            secondNewWordList.push(newWordList[i])
+
+        //Can't have correct letter in wrong spot
+        //t,0 will eliminate 'thorn'
+        pattern = buildRegexPattern(correctLetterWrongPositionMap[i][0], correctLetterWrongPositionMap[i][1], "cantHave")
+        console.log(new RegExp(pattern), currentWord)
+        console.log(currentWord.match(new RegExp(pattern)))
+        if (currentWord.match(new RegExp(pattern)) == null) {
+            return "exclude";
+        }
+    }
+}
+
+function rightLetterRightPosition(currentWord, correctLetterCorrectPositionMap) {
+    for (let i = 0; i < correctLetterCorrectPositionMap.length; i++) {
+        pattern = buildRegexPattern(correctLetterCorrectPositionMap[i][0], correctLetterCorrectPositionMap[i][1], "mustHave")
+        console.log(new RegExp(pattern), currentWord)
+        console.log(currentWord.match(new RegExp(pattern)))
+        if (currentWord.match(new RegExp(pattern)) == null) {
+            return "exclude"
         }
     }
 }
 
 
 
-eliminatedLetters = ['a', 'l', 't', 'b', 'k', 'm', 'n', 's', 'c', 'h','p','w']
+function includeExcludeWord(currentWordList, eliminatedLetters, correctLetterWrongPositionMap, correctLetterCorrectPositionMap) {
+    for (let i = 0; i < currentWordList.length; i++) {
+        decision = "";
+        decision += eliminateWrongLetters(currentWordList[i], eliminatedLetters);
+        decision += rightLetterWrongPosition(currentWordList[i], correctLetterWrongPositionMap);
+        decision += rightLetterRightPosition(currentWordList[i], correctLetterCorrectPositionMap);
+
+        if (decision.includes("exclude")) {
+            continue;
+        } else {
+            secondNewWordList.push(currentWordList[i])
+        }
+    }
+}
+
+
 findSetOfLetters(initialWordList);
 // findLetterDistribution(initialWordList);
 
 findWordScore(wordScore);
-
-wrongLetterEliminate(initialWordList, eliminatedLetters)
-
-rightLetterWrongPosition(newWordList, positionMap);
 
 //regex or loops
 
@@ -219,9 +239,17 @@ function createScoringObject(list) {
     return result
 }
 
+
+
+includeExcludeWord(initialWordList, eliminatedLetters, correctLetterWrongPositionMap, correctLetterCorrectPositionMap)
+
 resetFrequencies()
 findSetOfLetters(secondNewWordList);
 
 createdObject = createScoringObject(secondNewWordList)
 
 let total = findWordScore(createdObject);
+
+
+//Invalid scoring - ex; contradicting grading
+
