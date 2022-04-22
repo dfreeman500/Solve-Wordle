@@ -136,22 +136,17 @@ function eliminateWrongLetters(currentWord, eliminatedLetters) {
     }
 }
 
-eliminatedLetters = ['a','l','e','t','h','n','y','c','p','f']
+eliminatedLetters = ['c','r','a','t']
 
 //Letters in the word and in the correct position
 correctLetterCorrectPositionMap = [
-    ['r',1],
-    ['i',2],
-    ['s',3],
-    ['k',4]
-
+  ['e',4]
 
 ]
 
 //These are letters that must be in the word but are in the incorrect position
 let correctLetterWrongPositionMap = [
-    ['r',3],
-    ['s',0]
+
 ]
 
 
@@ -246,10 +241,53 @@ includeExcludeWord(initialWordList, eliminatedLetters, correctLetterWrongPositio
 resetFrequencies()
 findSetOfLetters(secondNewWordList);
 
-createdObject = createScoringObject(secondNewWordList)
+// createdObject = createScoringObject(secondNewWordList)
 
-let total = findWordScore(createdObject);
+// let total = findWordScore(createdObject);
 
 
 //Invalid scoring - ex; contradicting grading
 
+
+
+//Any letter that is definitely in the word no matter if correct location
+let listOfLettersInWord;
+
+// use word score by raw words eliminated or percent eliminated
+function ifAllNewLettersAreWrongHowManyWordsAreELiminated(currentWordList){
+    //takes the secondNewWordList and creates an object with the word
+    //as the key and 0 as the value
+    let scoringObject = createScoringObject(currentWordList);
+    listOfLettersInWord  += correctLetterCorrectPositionMap.map(x => x.map(a => a[0])).flat(2)
+    listOfLettersInWord  += correctLetterWrongPositionMap.map(x => x.map(a => a[0])).flat(2)
+
+    for (let item in scoringObject){
+        tempEliminatedLetters = eliminatedLetters;
+            for (let letter in item){
+                //If the letters in the word were counted as wrong then put them in the e
+                //eliminated letters
+                if(!listOfLettersInWord.includes(letter)){ 
+                    tempEliminatedLetters.push(letter)
+                }
+            }
+            let numberOfWordsEliminated=0;
+            for (let item1 in scoringObject){
+                for(let letter in tempEliminatedLetters){
+                    if(item1.includes(letter)){
+                        numberOfWordsEliminated += 1;     
+                        break
+                    }
+                }
+                scoringObject[item1] = numberOfWordsEliminated;
+            }
+
+
+    }
+    return scoringObject;
+
+    //if newly added letters are wrong - it will eliminate x from the current list
+
+
+}
+
+mostRecentScore = ifAllNewLettersAreWrongHowManyWordsAreELiminated(secondNewWordList)
