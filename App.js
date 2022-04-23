@@ -97,12 +97,12 @@ function findLetterDistribution(currentWordList) {
 
 let countWords = 0;
 function findWordScore(currentWordList) {
-    console.log("I have run", currentWordList)
+    // console.log("I have run", currentWordList)
     for (let object in currentWordList) {
-        console.log("i have run 2")
-        console.log(object)
+        // console.log("i have run 2")
+        // console.log(object)
         let tempSet = new Set(object)
-        console.log(tempSet)
+        // console.log(tempSet)
         tempSet.forEach(item => {
             currentWordList[object] += letterSetFrequency[item]
         })
@@ -111,8 +111,8 @@ function findWordScore(currentWordList) {
         //     console.log(object)
         // wordScore[object]= letterSetFrequency[tempSet[j]]
         countWords += 1;
-        console.log(wordScore)
-        console.log(countWords);
+        // console.log(wordScore)
+        // console.log(countWords);
     }
 
 
@@ -136,17 +136,20 @@ function eliminateWrongLetters(currentWord, eliminatedLetters) {
     }
 }
 
-eliminatedLetters = ['c','r','a','t']
+eliminatedLetters = []
 
 //Letters in the word and in the correct position
 correctLetterCorrectPositionMap = [
-  ['e',4]
+  ['o',1],
+  ['u',2],
+  ['n',3],
+  ['d',4]
 
 ]
 
 //These are letters that must be in the word but are in the incorrect position
 let correctLetterWrongPositionMap = [
-
+    
 ]
 
 
@@ -192,8 +195,8 @@ function rightLetterWrongPosition(currentWord, correctLetterWrongPositionMap) {
 function rightLetterRightPosition(currentWord, correctLetterCorrectPositionMap) {
     for (let i = 0; i < correctLetterCorrectPositionMap.length; i++) {
         pattern = buildRegexPattern(correctLetterCorrectPositionMap[i][0], correctLetterCorrectPositionMap[i][1], "mustHave")
-        console.log(new RegExp(pattern), currentWord)
-        console.log(currentWord.match(new RegExp(pattern)))
+        // console.log(new RegExp(pattern), currentWord)
+        // console.log(currentWord.match(new RegExp(pattern)))
         if (currentWord.match(new RegExp(pattern)) == null) {
             return "exclude"
         }
@@ -251,34 +254,35 @@ findSetOfLetters(secondNewWordList);
 
 
 //Any letter that is definitely in the word no matter if correct location
-let listOfLettersInWord;
+let listOfLettersInWord='';
 
 // use word score by raw words eliminated or percent eliminated
 function ifAllNewLettersAreWrongHowManyWordsAreELiminated(currentWordList){
     //takes the secondNewWordList and creates an object with the word
     //as the key and 0 as the value
     let scoringObject = createScoringObject(currentWordList);
-    listOfLettersInWord  += correctLetterCorrectPositionMap.map(x => x.map(a => a[0])).flat(2)
-    listOfLettersInWord  += correctLetterWrongPositionMap.map(x => x.map(a => a[0])).flat(2)
-
+    listOfLettersInWord  += correctLetterCorrectPositionMap.map(x => x.map(a => a[0]))
+    listOfLettersInWord  += correctLetterWrongPositionMap.map(x => x.map(a => a[0]))
     for (let item in scoringObject){
-        tempEliminatedLetters = eliminatedLetters;
+        let tempEliminatedLetters=[]
+        tempEliminatedLetters.push(...eliminatedLetters); //pushes the new list inline
             for (let letter in item){
                 //If the letters in the word were counted as wrong then put them in the e
                 //eliminated letters
-                if(!listOfLettersInWord.includes(letter)){ 
-                    tempEliminatedLetters.push(letter)
+                if(!listOfLettersInWord.includes(item[letter]) && !tempEliminatedLetters.includes(item[letter])){ 
+                    tempEliminatedLetters.push(item[letter])
                 }
             }
             let numberOfWordsEliminated=0;
-            for (let item1 in scoringObject){
+            for (let word in currentWordList){
                 for(let letter in tempEliminatedLetters){
-                    if(item1.includes(letter)){
+                    if(currentWordList[word].includes(tempEliminatedLetters[letter])){
                         numberOfWordsEliminated += 1;     
+                        scoringObject[item] = numberOfWordsEliminated;
+
                         break
                     }
                 }
-                scoringObject[item1] = numberOfWordsEliminated;
             }
 
 
@@ -286,8 +290,21 @@ function ifAllNewLettersAreWrongHowManyWordsAreELiminated(currentWordList){
     return scoringObject;
 
     //if newly added letters are wrong - it will eliminate x from the current list
-
-
 }
 
-mostRecentScore = ifAllNewLettersAreWrongHowManyWordsAreELiminated(secondNewWordList)
+
+
+
+// fakeWordList=['fined','dinef','dddd','iiiii','fff','nnn']
+mostRecentScore = ifAllNewLettersAreWrongHowManyWordsAreELiminated(secondNewWordList);
+
+sortable = Object.fromEntries(
+    Object.entries(mostRecentScore).sort(([,a],[,b]) => b-a)
+)
+
+// function gradingCheck (){
+//     for (let i=0; i< 
+
+// }
+
+console.log(sortable)
